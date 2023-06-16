@@ -3,11 +3,9 @@ package s3storage
 import (
 	"context"
 	"errors"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/vczyh/dbbackup/client/s3client"
 	"github.com/vczyh/dbbackup/log"
 	"github.com/vczyh/dbbackup/storage"
 	"io"
@@ -20,26 +18,27 @@ const (
 )
 
 type Config struct {
-	Logger          log.Logger
-	AccessKeyID     string
-	SecretAccessKey string
-	ForcePathStyle  bool
-	Region          string
-	Endpoint        string
-	Bucket          string
-	Delimiter       string
-	Prefix          string
+	Logger log.Logger
+	//AccessKeyID     string
+	//SecretAccessKey string
+	//ForcePathStyle  bool
+	//Region          string
+	//Endpoint        string
+	Bucket    string
+	Delimiter string
+	Prefix    string
 }
 
 type S3Storage struct {
-	config  Config
-	_client *s3.S3
-	mu      sync.Mutex
+	config Config
+	c      *s3client.Client
+	mu     sync.Mutex
 }
 
-func New(config *Config) (storage.BackupStorage, error) {
+func New(client *s3client.Client, config *Config) (storage.BackupStorage, error) {
 	bs := new(S3Storage)
 	bs.config = *config
+	bs.c = client
 
 	if bs.config.Delimiter == "" {
 		bs.config.Delimiter = DefaultDelimiter
@@ -127,33 +126,34 @@ func (bs *S3Storage) client() (*s3.S3, error) {
 	bs.mu.Lock()
 	defer bs.mu.Unlock()
 
-	if bs._client != nil {
-		return bs._client, nil
-	}
+	//if bs._client != nil {
+	//	return bs._client, nil
+	//}
+	return bs.c.AwsClient()
 
-	// TODO tls self sign certification ignore?
-
-	awsConfig := &aws.Config{
-		// TODO  log level
-		//LogLevel: aws.LogOff,
-		Region:           &bs.config.Region,
-		Endpoint:         &bs.config.Endpoint,
-		S3ForcePathStyle: &bs.config.ForcePathStyle,
-	}
-	accessKeyID := bs.config.AccessKeyID
-	secretAccessKey := bs.config.SecretAccessKey
-	if accessKeyID != "" && secretAccessKey != "" {
-		staticCredentials := credentials.NewStaticCredentials(accessKeyID, secretAccessKey, "")
-		awsConfig.Credentials = staticCredentials
-	}
-
-	awsSession, err := session.NewSession(awsConfig)
-	if err != nil {
-		return nil, err
-	}
-	bs._client = s3.New(awsSession)
-
-	return bs._client, nil
+	//// TODO tls self sign certification ignore?
+	//
+	//awsConfig := &aws.Config{
+	//	// TODO  log level
+	//	//LogLevel: aws.LogOff,
+	//	Region:           &bs.config.Region,
+	//	Endpoint:         &bs.config.Endpoint,
+	//	S3ForcePathStyle: &bs.config.ForcePathStyle,
+	//}
+	//accessKeyID := bs.config.AccessKeyID
+	//secretAccessKey := bs.config.SecretAccessKey
+	//if accessKeyID != "" && secretAccessKey != "" {
+	//	staticCredentials := credentials.NewStaticCredentials(accessKeyID, secretAccessKey, "")
+	//	awsConfig.Credentials = staticCredentials
+	//}
+	//
+	//awsSession, err := session.NewSession(awsConfig)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//bs._client = s3.New(awsSession)
+	//
+	//return bs._client, nil
 }
 
 type S3Backup struct {

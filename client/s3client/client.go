@@ -17,7 +17,7 @@ type Client struct {
 	endpoint        string
 	delimiter       string
 	mu              sync.Mutex
-	// use client() instead.
+	// use AwsClient() instead.
 	_awsClient *s3.S3
 }
 
@@ -39,7 +39,7 @@ func New(accessKeyID, secretAccessKey, endpoint string, opts ...Option) *Client 
 }
 
 func (c *Client) ListBuckets(ctx context.Context) ([]string, error) {
-	awsClient, err := c.client()
+	awsClient, err := c.AwsClient()
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *Client) ListBuckets(ctx context.Context) ([]string, error) {
 	return buckets, nil
 }
 
-func (c *Client) client() (*s3.S3, error) {
+func (c *Client) AwsClient() (*s3.S3, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
