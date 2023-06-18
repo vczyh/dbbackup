@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/vczyh/dbbackup/client/s3client"
 	"github.com/vczyh/dbbackup/log/zaplog"
 	"github.com/vczyh/dbbackup/storage"
 	"github.com/vczyh/dbbackup/storage/s3storage"
@@ -32,27 +33,32 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&s3Region, "s3-region", "", "S3 region")
 }
 
-func getStorage() storage.BackupStorage {
-	logger := zaplog.Default
+func GetS3Client() *s3client.Client {
+	return s3client.New(
+		s3AccessKeyID,
+		s3SecretAccessKey,
+		s3Endpoint,
+		s3client.WithForcePathStyle(s3ForcePathStyle),
+		s3client.WithRegion(s3Region),
+	)
 
+}
+
+func GetStorage(s3Client *s3client.Client) (bs storage.BackupStorage, err error) {
 	switch storageType {
 	case "s3":
-		bs, err := s3storage.New(&s3storage.Config{
-			Logger:          zaplog.Default,
-			Endpoint:        s3Endpoint,
-			AccessKeyID:     s3AccessKeyID,
-			SecretAccessKey: s3SecretAccessKey,
-			ForcePathStyle:  s3ForcePathStyle,
-			Bucket:          s3Bucket,
-			Region:          s3Region,
-			Prefix:          prefix,
+		bs, err = s3storage.New(s3Client, &s3storage.Config{
+			Logger: zaplog.Default,
+			Bucket: s3Bucket,
+			//Delimiter:  "/"
+			Prefix: prefix,
 		})
 		if err != nil {
-			exit(logger, err)
+			return nil, err
 		}
-		return bs
 	default:
-		exit(logger, fmt.Errorf("unsupported storage type"))
+		return nil, fmt.Errorf("unsupported storage type")
 	}
-	return nil
+
+	return bs, nil
 }
