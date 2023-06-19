@@ -1,8 +1,11 @@
 package s3storage
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/vczyh/dbbackup/client/s3client"
@@ -18,12 +21,7 @@ const (
 )
 
 type Config struct {
-	Logger log.Logger
-	//AccessKeyID     string
-	//SecretAccessKey string
-	//ForcePathStyle  bool
-	//Region          string
-	//Endpoint        string
+	Logger    log.Logger
 	Bucket    string
 	Delimiter string
 	Prefix    string
@@ -120,6 +118,18 @@ func (bs *S3Storage) RemoveBackup(ctx context.Context, dir, name string) error {
 		return err
 	}
 	return nil
+}
+
+func (bs *S3Storage) GetManifest(ctx context.Context, dir string) (storage.BackupManifestHandler, error) {
+	client, err := bs.client()
+	if err != nil {
+		return nil, err
+	}
+	return &S3ManifestHandler{
+		dir:    dir,
+		bs:     bs,
+		client: client,
+	}, nil
 }
 
 func (bs *S3Storage) client() (*s3.S3, error) {
@@ -264,6 +274,66 @@ func (bh *S3BackupHandler) AbortBackup(ctx context.Context) error {
 	bh.mu.Unlock()
 	bh.wg.Wait()
 	return bh.bs.RemoveBackup(ctx, bh.dir, bh.name)
+}
+
+type S3ManifestHandler struct {
+	dir    string
+	name   string
+	bs     *S3Storage
+	client *s3.S3
+}
+
+func (smh *S3ManifestHandler) Directory() string {
+	return smh.dir
+}
+
+func (smh *S3ManifestHandler) Name() string {
+	return smh.name
+}
+
+func (smh *S3ManifestHandler) UnmarshalManifest(ctx context.Context, manifest *storage.BackupsManifest) error {
+	config := smh.bs.config
+	object := objectKey(config.Delimiter, config.Prefix, smh.dir, storage.BackupsManifestFilename)
+
+	_, err := smh.client.HeadObject(&s3.HeadObjectInput{
+		Bucket: &config.Bucket,
+		Key:    &object,
+	})
+	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == "NotFound" {
+				return nil
+			}
+		}
+		return err
+	}
+
+	out, err := smh.client.GetObjectWithContext(ctx, &s3.GetObjectInput{
+		Bucket: &config.Bucket,
+		Key:    &object,
+	})
+	if err != nil {
+		return err
+	}
+	defer out.Body.Close()
+	return json.NewDecoder(out.Body).Decode(manifest)
+}
+
+func (smh *S3ManifestHandler) MarshalManifest(ctx context.Context, manifest *storage.BackupsManifest) error {
+	config := smh.bs.config
+	object := objectKey(config.Delimiter, config.Prefix, smh.dir, storage.BackupsManifestFilename)
+
+	b, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	_, err = s3manager.NewUploaderWithClient(smh.client).UploadWithContext(ctx, &s3manager.UploadInput{
+		Bucket: &config.Bucket,
+		Key:    &object,
+		Body:   bytes.NewReader(b),
+	})
+	return err
 }
 
 func objectKey(delimiter string, parts ...string) string {

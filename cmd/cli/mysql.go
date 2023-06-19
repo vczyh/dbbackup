@@ -51,7 +51,7 @@ func mysqlCmdRun() error {
 		return err
 	}
 
-	var backup *mysqlbackup.Backup
+	var backup *mysqlbackup.Manager
 	if mc.xtraBackup {
 		backup, err = mysqlbackup.New(
 			mysqlbackup.WithLogger(logger),
