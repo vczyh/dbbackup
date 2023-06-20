@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteTargetsManager">
+    <targets>
+      <target name="root@192.168.64.45:22" type="ssh/sftp" uuid="57c08cde-f492-4f99-a624-3f761d88653d">
+        <config>
+          <option name="projectRootOnTarget" value="/root/dbbackup" />
+          <option name="serverName" value="root@192.168.64.45:22 password" />
+          <option name="useRsync" value="true" />
+        </config>
+        <ContributedStateBase type="GoLanguageRuntime">
+          <config>
+            <option name="goPath" value="/root/go" />
+            <option name="goRoot" value="/usr/local/go/bin/go" />
+            <option name="goVersion" value="go1.19.10 linux/arm64" />
+          </config>
+        </ContributedStateBase>
+      </target>
+    </targets>
+  </component>
+</project>

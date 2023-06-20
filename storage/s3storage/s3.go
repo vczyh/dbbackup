@@ -250,6 +250,37 @@ func (bh *S3BackupHandler) AddFile(ctx context.Context, filename string, filesiz
 	return writer, nil
 }
 
+func (bh *S3BackupHandler) WriteManifest(ctx context.Context, manifest any) error {
+	config := bh.bs.config
+	object := objectKey(config.Delimiter, config.Prefix, bh.dir, bh.name, storage.BackupManifestFilename)
+	b, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	_, err = s3manager.NewUploaderWithClient(bh.client).UploadWithContext(ctx, &s3manager.UploadInput{
+		Bucket: &config.Bucket,
+		Key:    &object,
+		Body:   bytes.NewReader(b),
+	})
+	return err
+}
+
+func (bh *S3BackupHandler) ReadManifest(ctx context.Context, manifest any) error {
+	config := bh.bs.config
+	object := objectKey(config.Delimiter, config.Prefix, bh.dir, bh.name, storage.BackupManifestFilename)
+
+	out, err := bh.client.GetObjectWithContext(ctx, &s3.GetObjectInput{
+		Bucket: &config.Bucket,
+		Key:    &object,
+	})
+	if err != nil {
+		return err
+	}
+	defer out.Body.Close()
+	return json.NewDecoder(out.Body).Decode(manifest)
+}
+
 func (bh *S3BackupHandler) Wait(ctx context.Context) error {
 	bh.wg.Wait()
 
@@ -291,7 +322,7 @@ func (smh *S3ManifestHandler) Name() string {
 	return smh.name
 }
 
-func (smh *S3ManifestHandler) UnmarshalManifest(ctx context.Context, manifest *storage.BackupsManifest) error {
+func (smh *S3ManifestHandler) ReadManifest(ctx context.Context, manifest *storage.BackupsManifest) error {
 	config := smh.bs.config
 	object := objectKey(config.Delimiter, config.Prefix, smh.dir, storage.BackupsManifestFilename)
 
@@ -319,7 +350,7 @@ func (smh *S3ManifestHandler) UnmarshalManifest(ctx context.Context, manifest *s
 	return json.NewDecoder(out.Body).Decode(manifest)
 }
 
-func (smh *S3ManifestHandler) MarshalManifest(ctx context.Context, manifest *storage.BackupsManifest) error {
+func (smh *S3ManifestHandler) WriteManifest(ctx context.Context, manifest *storage.BackupsManifest) error {
 	config := smh.bs.config
 	object := objectKey(config.Delimiter, config.Prefix, smh.dir, storage.BackupsManifestFilename)
 

@@ -8,6 +8,7 @@ import (
 
 const (
 	BackupsManifestFilename = "backups-manifest.json"
+	BackupManifestFilename  = "manifest.json"
 )
 
 type BackupStorage interface {
@@ -27,14 +28,16 @@ type BackupHandler interface {
 	Directory() string
 	Name() string
 	AddFile(ctx context.Context, filename string, filesize int64) (io.WriteCloser, error)
+	WriteManifest(ctx context.Context, manifest any) error
+	ReadManifest(ctx context.Context, manifest any) error
 	Wait(ctx context.Context) error
 	AbortBackup(ctx context.Context) error
 }
 
 type BackupManifestHandler interface {
 	Directory() string
-	UnmarshalManifest(ctx context.Context, manifest *BackupsManifest) error
-	MarshalManifest(ctx context.Context, manifest *BackupsManifest) error
+	ReadManifest(ctx context.Context, manifest *BackupsManifest) error
+	WriteManifest(ctx context.Context, manifest *BackupsManifest) error
 }
 
 type BackupsManifest struct {
@@ -43,5 +46,4 @@ type BackupsManifest struct {
 
 type BackupManifest struct {
 	SnapshotTime time.Time
-	Meta         map[string]any
 }

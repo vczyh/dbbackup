@@ -12,7 +12,7 @@ func TestManager_ExecuteBackup(t *testing.T) {
 	s3Client := s3client.New(
 		"QTBELHBAPSf3un1m57mG",
 		"EXTw1meYdwhqZQEEpBDA9vDDOmQVF4dwlV69mbBb",
-		"http://192.168.64.1:9000",
+		"https://192.168.64.1:9000",
 		s3client.WithForcePathStyle(true),
 		s3client.WithRegion("test"),
 	)

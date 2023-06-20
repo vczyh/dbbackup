@@ -2,7 +2,6 @@ package mysqlbackup
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/vczyh/dbbackup/storage"
 	"time"
 )
@@ -25,16 +24,19 @@ type Manifest struct {
 
 func (m *Manager) writeManifest(ctx context.Context, bh storage.BackupHandler, manifest *Manifest) error {
 	// Write current backup metadata to current backup dir.
-	file, err := bh.AddFile(ctx, backupManifestFileName, -1)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	b, err := json.MarshalIndent(manifest, "", "  ")
-	if err != nil {
-		return err
-	}
-	if _, err := file.Write(b); err != nil {
+	//file, err := bh.AddFile(ctx, backupManifestFileName, -1)
+	//if err != nil {
+	//	return err
+	//}
+	//defer file.Close()
+	//b, err := json.MarshalIndent(manifest, "", "  ")
+	//if err != nil {
+	//	return err
+	//}
+	//if _, err := file.Write(b); err != nil {
+	//	return err
+	//}
+	if err := bh.WriteManifest(ctx, manifest); err != nil {
 		return err
 	}
 
@@ -45,18 +47,14 @@ func (m *Manager) writeManifest(ctx context.Context, bh storage.BackupHandler, m
 	}
 	var backupsManifest storage.BackupsManifest
 
-	if err = mh.UnmarshalManifest(ctx, &backupsManifest); err != nil {
+	if err = mh.ReadManifest(ctx, &backupsManifest); err != nil {
 		return err
 	}
 	backupsManifest.Backups = append(backupsManifest.Backups, &storage.BackupManifest{
 		SnapshotTime: manifest.FinishedTime,
-		Meta: map[string]any{
-			"BackupTime": manifest.BackupTime,
-			"GTID":       manifest.GTID,
-		},
 	})
 
-	if err = mh.MarshalManifest(ctx, &backupsManifest); err != nil {
+	if err = mh.WriteManifest(ctx, &backupsManifest); err != nil {
 		return err
 	}
 	return nil
