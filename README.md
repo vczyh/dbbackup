@@ -13,7 +13,7 @@ go install github.com/vczyh/dbbackup@latest
 
 ## 使用
 
-通过 s3，使用 xtrabackup 备份 mysql 到 oss；
+通过 s3，使用 xtrabackup 备份 mysql 到 oss：
 
 ```
 dbbackup mysql \
