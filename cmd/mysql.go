@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/vczyh/dbbackup/backup"
+	"github.com/vczyh/dbbackup/backup/mysqlbackup"
 	"github.com/vczyh/dbbackup/log/zaplog"
-	"github.com/vczyh/dbbackup/mysql/mysqlbackup"
 )
 
 var mysqlCmd = &cobra.Command{
@@ -51,9 +52,9 @@ func mysqlCmdRun() error {
 		return err
 	}
 
-	var backup *mysqlbackup.Manager
+	var manager *mysqlbackup.Manager
 	if mc.xtraBackup {
-		backup, err = mysqlbackup.New(
+		manager, err = mysqlbackup.New(
 			mysqlbackup.WithLogger(logger),
 			mysqlbackup.WithS3Client(s3Client),
 			mysqlbackup.WithBackupStorage(backupStorage),
@@ -68,13 +69,17 @@ func mysqlCmdRun() error {
 			return err
 		}
 	}
-	if backup == nil {
+	if manager == nil {
 		return fmt.Errorf("please specify the backup type")
 	}
 
-	if err = backup.ExecuteBackup(context.TODO()); err != nil {
+	notifiers, err := GetNotifiers()
+	if err != nil {
 		return err
 	}
 
+	if err := backup.Execute(context.Background(), logger, manager, notifiers); err != nil {
+		return err
+	}
 	return nil
 }

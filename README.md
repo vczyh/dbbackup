@@ -1,7 +1,8 @@
 ## 功能
 
-- 备份
-- 存储
+- 备份：MySQL
+- 存储：s3
+- 通知：邮件
 
 ## 安装
 
@@ -31,6 +32,28 @@ dbbackup mysql \
     --cnf /etc/mysql/my.cnf 
 ```
 
+备份后发送邮件通知：
+
+```
+ /tmp/dbbackup  mysql \
+    --storage s3 \
+    --s3-access-key-id QTBELHBAPSf3un1m57mG \
+    --s3-secret-access-key EXTw1meYdwhqZQEEpBDA9vDDOmQVF4dwlV69mbBb \
+    --s3-endpoint http://192.168.64.1:9000 \
+    --s3-bucket backup \
+    --s3-region test \
+    --mail-username xxx@163.com \
+    --mail-password xxxx \
+    --mail-host smtp.163.com \
+    --mail-to xxxxx \
+    --xtrabackup \
+    --user bkpuser \
+    --password 123 \
+    --socket /var/run/mysqld/mysqld.sock \
+    --xtrabackup-path /home/ubuntu/xtrabackup/bin/xtrabackup \
+    --cnf /etc/mysql/my.cnf
+```
+
 ### Flag 说明
 
 ### 存储
@@ -56,5 +79,15 @@ dbbackup mysql \
 | --socket          | /var/run/mysqld/mysqld.sock | mysql unix socket 路径 |
 | --user            | root                        | mysql 用户名            |
 | --password        | ""                          | mysql 密码             |
+
+### 通知
+
+| 名称              | 类型 | 默认 | 说明                                            |
+|-----------------|----|----|-----------------------------------------------|
+| --mail-username | 邮件 | "" | `SMTP`用户名                                     |
+| --mail-password | 邮件 | "" | `SMTP`密码                                      |
+| --mail-host     | 邮件 | "" | `SMTP`host                                    |
+| --mail-port     | 邮件 | 25 | `SMTP`端口                                      |
+| --mail-to       | 邮件 | "" | 接收人，多个接收人使用 `--mail-to mail1 --mail-to mail2` |
 
 
