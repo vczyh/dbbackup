@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"io"
-	"time"
 )
 
 const (
@@ -15,7 +14,7 @@ type BackupStorage interface {
 	ListBackups(ctx context.Context, dir string) ([]Backup, error)
 	StartBackup(ctx context.Context, dir, name string) (BackupHandler, error)
 	RemoveBackup(ctx context.Context, dir, name string) error
-	GetManifest(ctx context.Context, dir string) (BackupManifestHandler, error)
+	//GetManifest(ctx context.Context, dir string) (BackupManifestHandler, error)
 }
 
 type Backup interface {
@@ -34,16 +33,16 @@ type BackupHandler interface {
 	AbortBackup(ctx context.Context) error
 }
 
-type BackupManifestHandler interface {
-	Directory() string
-	ReadManifest(ctx context.Context, manifest *BackupsManifest) error
-	WriteManifest(ctx context.Context, manifest *BackupsManifest) error
-}
-
-type BackupsManifest struct {
-	Backups []*BackupManifest
-}
-
-type BackupManifest struct {
-	SnapshotTime time.Time
-}
+//type BackupManifestHandler interface {
+//	Directory() string
+//	ReadManifest(ctx context.Context, manifest *BackupsManifest) error
+//	WriteManifest(ctx context.Context, manifest *BackupsManifest) error
+//}
+//
+//type BackupsManifest struct {
+//	Backups []*BackupManifest
+//}
+//
+//type BackupManifest struct {
+//	SnapshotTime time.Time
+//}

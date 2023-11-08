@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/vczyh/dbbackup/backup"
@@ -11,7 +12,7 @@ import (
 
 var mysqlCmd = &cobra.Command{
 	Use:   "mysql",
-	Short: "mysql",
+	Short: "Backup mysql",
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return mysqlCmdRun()
@@ -30,7 +31,7 @@ type mysqlConfig struct {
 	socket               string
 	user                 string
 	password             string
-	xtraBackupFlags      string
+	//xtraBackupFlags      string
 }
 
 func init() {
@@ -41,13 +42,12 @@ func init() {
 	mysqlCmd.Flags().StringVar(&mc.socket, "socket", "/var/run/mysqld/mysqld.sock", "Unix socket path")
 	mysqlCmd.Flags().StringVar(&mc.user, "user", "root", "MySQL user")
 	mysqlCmd.Flags().StringVar(&mc.password, "password", "", "MySQL password")
-	mysqlCmd.Flags().StringVar(&mc.xtraBackupFlags, "xtrabackup-flags", "", "XtraBackup extra flags")
+	//mysqlCmd.Flags().StringVar(&mc.xtraBackupFlags, "xtrabackup-flags", "", "XtraBackup extra flags")
 }
 
 func mysqlCmdRun() error {
 	logger := zaplog.Default
-	s3Client := GetS3Client()
-	backupStorage, err := GetStorage(s3Client)
+	backupStorage, err := GetStorage()
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,6 @@ func mysqlCmdRun() error {
 	if mc.xtraBackup {
 		manager, err = mysqlbackup.New(
 			mysqlbackup.WithLogger(logger),
-			mysqlbackup.WithS3Client(s3Client),
 			mysqlbackup.WithBackupStorage(backupStorage),
 			mysqlbackup.WithXtraBackup(),
 			mysqlbackup.WithCnf(mc.cnf),
@@ -75,10 +74,14 @@ func mysqlCmdRun() error {
 
 	notifiers, err := GetNotifiers()
 	if err != nil {
-		return err
+		if errors.Is(err, NotifierFlagNotSetError) {
+			notifiers = nil
+		} else {
+			return err
+		}
 	}
 
-	if err := backup.Execute(context.Background(), logger, manager, notifiers); err != nil {
+	if err := backup.Execute(context.Background(), logger, manager, backupStorage, notifiers); err != nil {
 		return err
 	}
 	return nil

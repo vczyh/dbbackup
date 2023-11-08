@@ -2,7 +2,6 @@ package mysqlbackup
 
 import (
 	"context"
-	"fmt"
 	"github.com/vczyh/dbbackup/client/s3client"
 	"github.com/vczyh/dbbackup/log"
 	"github.com/vczyh/dbbackup/mysql/mysqlengine"
@@ -42,12 +41,12 @@ func New(opts ...Option) (*Manager, error) {
 	return b, nil
 }
 
-func (b *Manager) ExecuteBackup(ctx context.Context) error {
-	name := fmt.Sprintf("%d", time.Now().Unix())
-	bh, err := b.bs.StartBackup(ctx, "backup", name)
-	if err != nil {
-		return err
-	}
+func (b *Manager) ExecuteBackup(ctx context.Context, bh storage.BackupHandler) error {
+	//name := fmt.Sprintf("%d", time.Now().Unix())
+	//bh, err := b.bs.StartBackup(ctx, "backup", name)
+	//if err != nil {
+	//	return err
+	//}
 
 	backupTime := time.Now()
 	xtraBackupEngine := mysqlengine.GetXtraBackupEngine()

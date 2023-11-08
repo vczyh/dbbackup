@@ -1,8 +1,9 @@
 ## 功能
 
-- 备份：MySQL
-- 存储：s3
-- 通知：邮件
+- [备份 MySQL](#mysql)
+- [备份 Redis](#redis)
+- [上传到 OSS](#存储)
+- [邮件通知](#通知)
 
 ## 安装
 
@@ -42,10 +43,11 @@ dbbackup mysql \
     --s3-endpoint http://192.168.64.1:9000 \
     --s3-bucket backup \
     --s3-region test \
-    --mail-username xxx@163.com \
-    --mail-password xxxx \
-    --mail-host smtp.163.com \
-    --mail-to xxxxx \
+    --email-username xxx@163.com \
+    --email-password xxxx \
+    --email-host smtp.163.com \
+    --email-port 465 \
+    --email-to xxxxx \
     --xtrabackup \
     --user bkpuser \
     --password 123 \
@@ -54,9 +56,9 @@ dbbackup mysql \
     --cnf /etc/mysql/my.cnf
 ```
 
-### Flag 说明
+## 存储
 
-### 存储
+目前支持 S3。
 
 | 名称                     | 默认 | 说明                         |
 |------------------------|----|----------------------------|
@@ -69,7 +71,31 @@ dbbackup mysql \
 | --s3-bucket            | "" | s3 bucket                  |
 | --s3-force-path-style  | "" | s3 enable force path style |
 
-### MySQL
+## 通知
+
+目前支持 email。
+
+| 名称               | 类型 | 默认 | 说明                                   |
+|------------------|----|----|--------------------------------------|
+| --email-username | 邮件 | "" | `SMTP`用户名                            |
+| --email-password | 邮件 | "" | `SMTP`密码                             |
+| --email-host     | 邮件 | "" | `SMTP`host                           |
+| --email-port     | 邮件 | 25 | `SMTP`端口                             |
+| --email-to       | 邮件 | "" | 接收人，多个接收人使用 `--email-to mail1,mail2` |
+
+## Redis
+
+Redis 支持本地备份（直接拷贝本地RDB文件），和远程备份（通过网络获取RDB文件）。
+
+| 名称         | 默认          | 说明       |
+|------------|-------------|----------|
+| --user     | ""          | 用户       |
+| --password | ""          | 密码       |
+| --host     | "127.0.0.1" | host     |
+| --port     | 6379        | 端口       |
+| --remote   | false       | 是否使用远程备份 |
+
+## MySQL
 
 | 名称                | 默认                          | 说明                   |
 |-------------------|-----------------------------|----------------------|
@@ -79,15 +105,5 @@ dbbackup mysql \
 | --socket          | /var/run/mysqld/mysqld.sock | mysql unix socket 路径 |
 | --user            | root                        | mysql 用户名            |
 | --password        | ""                          | mysql 密码             |
-
-### 通知
-
-| 名称              | 类型 | 默认 | 说明                                            |
-|-----------------|----|----|-----------------------------------------------|
-| --mail-username | 邮件 | "" | `SMTP`用户名                                     |
-| --mail-password | 邮件 | "" | `SMTP`密码                                      |
-| --mail-host     | 邮件 | "" | `SMTP`host                                    |
-| --mail-port     | 邮件 | 25 | `SMTP`端口                                      |
-| --mail-to       | 邮件 | "" | 接收人，多个接收人使用 `--mail-to mail1 --mail-to mail2` |
 
 

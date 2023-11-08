@@ -25,4 +25,7 @@ func Execute(aversion string) {
 func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(mysqlCmd)
+	rootCmd.AddCommand(redisCmd)
+	rootCmd.AddCommand(mailNotificationCmd)
+	rootCmd.AddCommand(s3StorageCmd)
 }

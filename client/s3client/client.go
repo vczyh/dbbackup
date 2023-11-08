@@ -43,7 +43,6 @@ func (c *Client) ListBuckets(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	out, err := awsClient.ListBucketsWithContext(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		return nil, err

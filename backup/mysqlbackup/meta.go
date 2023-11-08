@@ -41,21 +41,21 @@ func (m *Manager) writeManifest(ctx context.Context, bh storage.BackupHandler, m
 	}
 
 	// Write current backup metadata to backups manifest.
-	mh, err := m.bs.GetManifest(ctx, bh.Directory())
-	if err != nil {
-		return err
-	}
-	var backupsManifest storage.BackupsManifest
+	//mh, err := m.bs.GetManifest(ctx, bh.Directory())
+	//if err != nil {
+	//	return err
+	//}
+	//var backupsManifest storage.BackupsManifest
+	//
+	//if err = mh.ReadManifest(ctx, &backupsManifest); err != nil {
+	//	return err
+	//}
+	//backupsManifest.Backups = append(backupsManifest.Backups, &storage.BackupManifest{
+	//	SnapshotTime: manifest.FinishedTime,
+	//})
 
-	if err = mh.ReadManifest(ctx, &backupsManifest); err != nil {
-		return err
-	}
-	backupsManifest.Backups = append(backupsManifest.Backups, &storage.BackupManifest{
-		SnapshotTime: manifest.FinishedTime,
-	})
-
-	if err = mh.WriteManifest(ctx, &backupsManifest); err != nil {
-		return err
-	}
+	//if err = mh.WriteManifest(ctx, &backupsManifest); err != nil {
+	//	return err
+	//}
 	return nil
 }

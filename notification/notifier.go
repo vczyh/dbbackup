@@ -6,5 +6,6 @@ type BackupNotification struct {
 }
 
 type Notifier interface {
+	Test() error
 	BackupNotify(notification *BackupNotification) error
 }
