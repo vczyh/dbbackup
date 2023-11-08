@@ -10,7 +10,6 @@ build:
 	CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -o bin/dbbackup-windows-arm64
 
 release:
-	echo $(version)
 	@echo "Release Version: $(version)"
 	@bash -c "echo -n $(version) > VERSION"
 	git add .
